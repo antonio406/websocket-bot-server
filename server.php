@@ -297,7 +297,7 @@ class WebSocketServer {
         
         // Experiencia general
         if (preg_match('/\b(experiencia|años|tiempo|trabajado)\b/u', $lowerMessage)) {
-            return 'Antonio tiene experiencia en desarrollo full stack desde 2019, con proyectos en React, Node.js, PHP, Python y Java. Ha trabajado tanto en frontend como backend.';
+            return 'Antonio tiene experiencia en desarrollo full stack desde 2021, con proyectos en React, Node.js, PHP, Python y Java. Ha trabajado tanto en frontend como backend.';
         }
         
         // Hora
