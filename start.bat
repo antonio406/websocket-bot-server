@@ -1,0 +1,3 @@
+@echo off
+echo Iniciando servidor WebSocket...
+C:\AppServ\php7\php.exe server.php

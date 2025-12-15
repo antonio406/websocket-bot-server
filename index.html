@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Bot - WebSocket</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .status.connected {
+            background: #48bb78;
+        }
+
+        .status.disconnected {
+            background: #f56565;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f7fafc;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #2d3748;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-info {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        #sendBtn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #sendBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #sendBtn:active {
+            transform: translateY(0);
+        }
+
+        #sendBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 10px 18px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: fit-content;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Chat Bot WebSocket</h1>
+            <div class="status disconnected" id="status">Desconectado</div>
+        </div>
+        
+        <div class="chat-box" id="chatBox">
+            <div class="message bot">
+                <div class="message-content">
+                    ¡Hola! 👋 Soy tu bot de práctica con WebSockets. ¡Escríbeme algo!
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Escribe un mensaje..." 
+                disabled
+            >
+            <button id="sendBtn" disabled>Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        const chatBox = document.getElementById('chatBox');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const status = document.getElementById('status');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        function connect() {
+            // Conectar al servidor WebSocket (ajusta el puerto si es necesario)
+            ws = new WebSocket('ws://localhost:8080');
+
+            ws.onopen = function() {
+                console.log('Conectado al servidor WebSocket');
+                status.textContent = 'Conectado';
+                status.className = 'status connected';
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                messageInput.focus();
+            };
+
+            ws.onmessage = function(event) {
+                console.log('Mensaje recibido:', event.data);
+                
+                // Ocultar indicador de escritura
+                typingIndicator.classList.remove('show');
+                
+                // Mostrar mensaje del bot
+                addMessage(event.data, 'bot');
+            };
+
+            ws.onerror = function(error) {
+                console.error('Error WebSocket:', error);
+                addMessage('Error de conexión', 'bot');
+            };
+
+            ws.onclose = function() {
+                console.log('Desconectado del servidor WebSocket');
+                status.textContent = 'Desconectado';
+                status.className = 'status disconnected';
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+                
+                // Intentar reconectar después de 3 segundos
+                setTimeout(connect, 3000);
+            };
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(contentDiv);
+            
+            // Insertar antes del indicador de escritura
+            chatBox.insertBefore(messageDiv, typingIndicator);
+            
+            // Scroll hacia abajo
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            
+            if (message && ws.readyState === WebSocket.OPEN) {
+                // Mostrar mensaje del usuario
+                addMessage(message, 'user');
+                
+                // Enviar al servidor
+                ws.send(message);
+                
+                // Mostrar indicador de escritura
+                typingIndicator.classList.add('show');
+                chatBox.scrollTop = chatBox.scrollHeight;
+                
+                // Limpiar input
+                messageInput.value = '';
+                messageInput.focus();
+            }
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Conectar al cargar la página
+        connect();
+    </script>
+</body>
+</html>
