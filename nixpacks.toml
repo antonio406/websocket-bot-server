@@ -3,8 +3,5 @@ providers = ["php"]
 [phases.setup]
 nixPkgs = ["php82", "php82Extensions.sockets"]
 
-[phases.build]
-cmds = ["echo 'No build needed'"]
-
 [start]
 cmd = "php server.php"
