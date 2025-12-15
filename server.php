@@ -131,17 +131,22 @@ class WebSocketServer {
 
     private function performHandshake($headers, $socket) {
         $lines = explode("\n", $headers);
-        $keyLine = '';
+        $key = '';
         
         foreach ($lines as $line) {
-            if (strpos($line, 'Sec-WebSocket-Key') !== false) {
-                $keyLine = trim($line);
-                break;
+            if (stripos($line, 'Sec-WebSocket-Key') !== false) {
+                $parts = explode(':', $line, 2);
+                if (isset($parts[1])) {
+                    $key = trim($parts[1]);
+                    break;
+                }
             }
         }
         
-        $key = explode(': ', $keyLine)[1];
-        $key = trim($key);
+        if (empty($key)) {
+            echo "⚠️ Error: No se encontró Sec-WebSocket-Key\n";
+            return;
+        }
         
         $acceptKey = base64_encode(sha1($key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
         
