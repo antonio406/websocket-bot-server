@@ -8,55 +8,77 @@ class WebSocketServer {
     private $clients = [];
     private $socket;
     
-    // Respuestas del bot
+    // Respuestas del bot personalizadas sobre Antonio
     private $botResponses = [
         'saludos' => [
-            '¡Hola! 👋 ¿Cómo estás?',
-            '¡Hola! ¿En qué puedo ayudarte?',
-            '¡Hey! ¿Qué tal?'
+            '¡Hola! 👋 Soy el asistente virtual de Antonio. ¿En qué puedo ayudarte?',
+            '¡Bienvenido! ¿Quieres saber más sobre Antonio Dimas?',
+            '¡Hola! Pregúntame sobre la experiencia y proyectos de Antonio 😊'
+        ],
+        'quien_es' => [
+            '🎓 Antonio Dimas Fernández es un Ingeniero en Desarrollo y Gestión de Software, Full Stack Developer especializado en React, Node.js, PHP, Python y Java.',
+            'Antonio es de León, Guanajuato, México. Tiene experiencia en desarrollo frontend con React/Angular y backend con Node.js, PHP, Python y Spring Boot.',
+            'Es un desarrollador apasionado que busca oportunidades de crecimiento profesional y está dispuesto a aprender cualquier tecnología necesaria.'
+        ],
+        'educacion' => [
+            '🎓 Antonio tiene dos títulos:\n- Ingeniería en Desarrollo y Gestión de Software (2021-2023)\n- TSU en Tecnologías de la Información (2019-2021)\nAmbos de la Universidad Tecnológica Fidel Velázquez',
+            'Se graduó de Ingeniero en Desarrollo y Gestión de Software en 2023, con especialización en desarrollo web full stack.'
+        ],
+        'habilidades_frontend' => [
+            '💻 Frontend: Antonio domina HTML5, CSS3, JavaScript, React (intermedio-avanzado), Angular (intermedio), con experiencia en SPAs y diseños responsivos.',
+            'Es experto en React y ha creado múltiples aplicaciones dinámicas. También trabaja con Angular para dashboards empresariales.',
+            'Sus habilidades frontend incluyen diseño responsivo, animaciones CSS, y frameworks modernos como React y Angular.'
+        ],
+        'habilidades_backend' => [
+            '⚙️ Backend: Domina Node.js, PHP, Python, Java y Spring Boot. Ha desarrollado APIs RESTful, microservicios y sistemas de gestión.',
+            'Tiene experiencia avanzada en PHP para sistemas de gestión y CMS, Node.js para APIs y microservicios, y Python para automatización.',
+            'Backend stack: Node.js + Express, PHP nativo, Python + Flask, Java + Spring Boot. Experiencia en arquitectura de microservicios.'
+        ],
+        'bases_datos' => [
+            '🗄️ Bases de datos: Experto en MongoDB, PostgreSQL, MySQL y SQL Server. Experiencia en diseño de esquemas y optimización.',
+            'Maneja tanto bases de datos SQL (PostgreSQL, MySQL, SQL Server) como NoSQL (MongoDB) para diferentes tipos de aplicaciones.',
+            'Especializado en PostgreSQL y MySQL para sistemas transaccionales, y MongoDB para aplicaciones NoSQL.'
+        ],
+        'proyectos' => [
+            '🚀 Proyectos destacados:\n1. Sistema de Citas (React + Node.js + MySQL)\n2. GJIMAR - Sitio corporativo (React + Vite)\n3. Baez Ópticos (HTML/CSS/JS)\n4. Este portafolio con WebSocket Chat!',
+            'Ha desarrollado sistemas completos desde cero, incluyendo gestión de citas médicas con backend RESTful y frontend en React.',
+            '¿Quieres ver sus proyectos? Visita la sección de proyectos o pregúntame por alguno específico.'
+        ],
+        'tecnologias' => [
+            '🛠️ Stack completo: React, Angular, Node.js, PHP, Python, Java, Spring Boot, MongoDB, PostgreSQL, MySQL, Git, Docker, Postman, VS Code, Odoo.',
+            'Domina 16+ tecnologías: desde HTML/CSS/JS hasta frameworks avanzados como Spring Boot y herramientas como Docker.',
+            'Frontend: React, Angular, TypeScript\nBackend: Node.js, PHP, Python, Java\nBD: MongoDB, PostgreSQL, MySQL\nTools: Git, Docker, Postman'
+        ],
+        'ubicacion' => [
+            '📍 Antonio está ubicado en León de los Aldama, Guanajuato, México.',
+            'Vive en León, Guanajuato, una ciudad industrial importante en el Bajío mexicano.'
+        ],
+        'objetivo' => [
+            '🎯 Antonio busca unirse a una empresa que ofrezca desarrollo profesional, donde pueda aprender continuamente y contribuir al crecimiento de la compañía.',
+            'Su objetivo es crecer profesionalmente en un ambiente que valore el aprendizaje continuo y la innovación tecnológica.'
+        ],
+        'habilidades_blandas' => [
+            '🌟 Habilidades blandas: Aprendizaje rápido, trabajo en equipo, resolución de problemas, comunicación efectiva, gestión del tiempo y adaptabilidad.',
+            'Se destaca por su capacidad de aprender rápidamente nuevas tecnologías y adaptarse a cambios en los requerimientos.'
+        ],
+        'contacto' => [
+            '📧 ¿Quieres contactar a Antonio? Ve a la sección de Contacto en su portafolio o envíale un mensaje.',
+            'Puedes contactarlo a través del formulario de contacto en este sitio web.'
         ],
         'despedidas' => [
-            '¡Hasta luego! 👋',
-            '¡Adiós! Que tengas un buen día',
-            '¡Nos vemos! 😊'
+            '¡Hasta luego! 👋 No dudes en volver si tienes más preguntas sobre Antonio.',
+            '¡Nos vemos! Espero haber ayudado a conocer mejor a Antonio 😊',
+            '¡Adiós! Si quieres saber más, revisa el portafolio completo.'
         ],
         'agradecimientos' => [
-            '¡De nada! 😊',
-            '¡Un placer ayudarte!',
-            '¡Para eso estoy! 🤖'
-        ],
-        'estados' => [
-            '¡Estoy genial! Listo para chatear 🤖',
-            '¡Funcionando perfectamente! ¿Y tú?',
-            '¡Todo bien por aquí! 😊'
-        ],
-        'nombres' => [
-            'Soy tu bot de práctica WebSocket hecho en PHP 🤖',
-            'Me llamo BotSocket PHP, ¡mucho gusto!',
-            'Soy un bot PHP para ayudarte a aprender WebSockets'
+            '¡De nada! 😊 Cualquier pregunta sobre Antonio, estoy aquí.',
+            '¡Un placer ayudarte a conocer más sobre Antonio!',
+            '¡Para eso estoy! 🤖 Pregunta lo que quieras sobre su experiencia.'
         ],
         'default' => [
-            'Interesante... cuéntame más 🤔',
-            'Entiendo, ¿algo más que quieras decir?',
-            'Eso es genial! ¿Qué más?',
-            'Hmm, no estoy seguro de cómo responder a eso 😅',
-            'Estoy aprendiendo, pero no sé mucho sobre eso',
-            '¡Gracias por compartir eso! 😊'
-        ],
-        'websocket' => [
-            '¡Los WebSockets son geniales! Permiten comunicación bidireccional en tiempo real 🚀',
-            'WebSocket es un protocolo de comunicación que proporciona canales de comunicación full-duplex',
-            '¡Me encanta hablar de WebSockets! Es la tecnología que me da vida 🤖'
-        ],
-        'programacion' => [
-            'La programación es fascinante! ¿Qué lenguaje te gusta más?',
-            '¡Programar es crear magia con código! ✨',
-            'Cada línea de código es una oportunidad para aprender algo nuevo'
-        ],
-        'php' => [
-            '¡PHP es genial! Estoy hecho con PHP puro 🐘',
-            'PHP es uno de los lenguajes más usados en la web!',
-            '¡Me encanta PHP! Es el lenguaje que me da vida 💜'
+            'Interesante pregunta. ¿Quieres saber sobre las habilidades, proyectos o experiencia de Antonio?',
+            'Puedo contarte sobre la educación, tecnologías, proyectos o habilidades de Antonio. ¿Qué te interesa?',
+            'Pregúntame sobre: educación, habilidades técnicas, proyectos, tecnologías que domina, o su objetivo profesional.'
         ]
     ];
 
@@ -218,29 +240,64 @@ class WebSocketServer {
             return $this->getRandomResponse($this->botResponses['agradecimientos']);
         }
         
-        // Estado del bot
-        if (preg_match('/\b(cómo estás|como estas|qué tal|que tal|cómo te va|como te va)\b/u', $lowerMessage)) {
-            return $this->getRandomResponse($this->botResponses['estados']);
+        // Quién es Antonio / Información personal
+        if (preg_match('/\b(quién es antonio|quien es antonio|antonio|dueño|portafolio|desarrollador|sobre ti|acerca de|about)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['quien_es']);
         }
         
-        // Nombre del bot
-        if (preg_match('/\b(cómo te llamas|como te llamas|tu nombre|quién eres|quien eres)\b/u', $lowerMessage)) {
-            return $this->getRandomResponse($this->botResponses['nombres']);
+        // Educación
+        if (preg_match('/\b(educación|educacion|estudios|universidad|carrera|título|titulo|graduó|graduado)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['educacion']);
         }
         
-        // WebSockets
-        if (preg_match('/\b(websocket|websockets|socket|tiempo real)\b/u', $lowerMessage)) {
-            return $this->getRandomResponse($this->botResponses['websocket']);
+        // Habilidades Frontend
+        if (preg_match('/\b(frontend|front-end|react|angular|html|css|javascript|diseño)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['habilidades_frontend']);
         }
         
-        // Programación
-        if (preg_match('/\b(programar|programación|programacion|código|codigo|desarrollar|javascript|python|java)\b/u', $lowerMessage)) {
-            return $this->getRandomResponse($this->botResponses['programacion']);
+        // Habilidades Backend
+        if (preg_match('/\b(backend|back-end|node|nodejs|php|python|java|spring|api|servidor)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['habilidades_backend']);
         }
         
-        // PHP
-        if (preg_match('/\b(php|elefante)\b/u', $lowerMessage)) {
-            return $this->getRandomResponse($this->botResponses['php']);
+        // Bases de datos
+        if (preg_match('/\b(base de datos|bases de datos|mongodb|postgresql|mysql|sql|database)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['bases_datos']);
+        }
+        
+        // Proyectos
+        if (preg_match('/\b(proyecto|proyectos|trabajo|trabajos|portfolio|gjimar|baez|citas)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['proyectos']);
+        }
+        
+        // Tecnologías / Stack
+        if (preg_match('/\b(tecnologías|tecnologias|stack|herramientas|framework|lenguaje|domina|sabe)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['tecnologias']);
+        }
+        
+        // Ubicación
+        if (preg_match('/\b(ubicación|ubicacion|dónde|donde|ciudad|vive|león|guanajuato)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['ubicacion']);
+        }
+        
+        // Objetivo profesional
+        if (preg_match('/\b(objetivo|busca|quiere|meta|aspiración|aspiracion)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['objetivo']);
+        }
+        
+        // Habilidades blandas
+        if (preg_match('/\b(habilidades blandas|soft skills|trabajo en equipo|comunicación|comunicacion|adaptabilidad)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['habilidades_blandas']);
+        }
+        
+        // Contacto
+        if (preg_match('/\b(contacto|contactar|email|correo|mensaje|escribir)\b/u', $lowerMessage)) {
+            return $this->getRandomResponse($this->botResponses['contacto']);
+        }
+        
+        // Experiencia general
+        if (preg_match('/\b(experiencia|años|tiempo|trabajado)\b/u', $lowerMessage)) {
+            return 'Antonio tiene experiencia en desarrollo full stack desde 2019, con proyectos en React, Node.js, PHP, Python y Java. Ha trabajado tanto en frontend como backend.';
         }
         
         // Hora
